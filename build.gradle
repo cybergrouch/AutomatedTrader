@@ -1,19 +1,60 @@
-group 'com.lange.exer'
+group 'com.lange.trader'
 version '1.0-SNAPSHOT'
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '2.5'
-  distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+apply plugin: 'java'
+apply plugin: 'idea'
+
+project.ext {
+    v = [
+            cofoja: '1.3-20160207',
+            guava: '19.0',
+
+            junit: '4.11',
+            mockito: '1.9.5',
+            powermock: '1.6.1',
+            assertJ: '3.3.0'
+
+    ]
+
+    outputPath = sourceSets.main.output.classesDir
+    cofoja = files("lib/cofoja.asm-${v.cofoja}.jar")
+
+    outputContractsDir = files('build/contracts') {
+        builtBy('compileContracts')
+    }
 }
 
-apply plugin: 'java'
-
-sourceCompatibility = 1.5
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile cofoja
+    compile "com.google.guava:guava:${v.guava}"
+
+    testCompile "junit:junit:${v.junit}"
+    testCompile "org.mockito:mockito-all:${v.mockito}"
+    testCompile "org.powermock:powermock-mockito-release-full:${v.powermock}"
+    testCompile "org.assertj:assertj-core:${v.assertJ}"
+    testCompile outputContractsDir
+
+}
+
+compileJava {
+    options.compilerArgs = ['-proc:none']
+}
+
+task compileContracts(type: JavaCompile) {
+    source = sourceSets.main.java.srcDirs
+    classpath = configurations.compile
+    destinationDir = outputContractsDir as File
+    options.compilerArgs = ['-processor',
+                            'com.google.java.contract.core.apt.AnnotationProcessor',
+                            '-proc:only']
+}
+
+test {
+    jvmArgs "-javaagent:lib/cofoja.asm-${v.cofoja}.jar"
 }
