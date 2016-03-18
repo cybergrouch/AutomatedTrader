@@ -3,8 +3,6 @@ package com.lange.trader.model;
 import com.google.java.contract.Invariant;
 import com.google.java.contract.Requires;
 
-import java.math.BigDecimal;
-
 /**
  * Created by lange on 17/3/16.
  */
@@ -16,7 +14,7 @@ import java.math.BigDecimal;
 })
 public class Trade {
 
-    enum Direction {
+    public enum Direction {
         BUY,
         SELL;
     }

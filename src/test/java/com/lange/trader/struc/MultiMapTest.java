@@ -1,9 +1,6 @@
 package com.lange.trader.struc;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
 
@@ -12,8 +9,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Created by lange on 18/3/16.
  */
-@PrepareForTest({MultiMap.class})
-@RunWith(PowerMockRunner.class)
 public class MultiMapTest {
 
     @Test

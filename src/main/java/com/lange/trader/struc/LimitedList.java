@@ -3,7 +3,6 @@ package com.lange.trader.struc;
 import com.google.common.collect.Lists;
 import com.google.java.contract.Ensures;
 import com.google.java.contract.Invariant;
-import com.google.java.contract.Requires;
 
 import java.util.*;
 import java.util.function.Predicate;

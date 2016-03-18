@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import com.google.java.contract.Invariant;
 import com.google.java.contract.Requires;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 

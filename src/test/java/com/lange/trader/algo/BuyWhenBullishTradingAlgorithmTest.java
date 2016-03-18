@@ -6,12 +6,8 @@ import com.lange.trader.model.Trade;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -19,8 +15,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by lange on 18/3/16.
  */
-@PrepareForTest({BuyWhenBullishTradingAlgorithm.class})
-@RunWith(PowerMockRunner.class)
 public class BuyWhenBullishTradingAlgorithmTest {
 
     private BuyWhenBullishTradingAlgorithm tradingAlgorithm;
@@ -53,16 +47,75 @@ public class BuyWhenBullishTradingAlgorithmTest {
     @Test
     public void testBuildTrades_nonTradableProduct() {
         Price price = Price.create("d", 3.1415);
-        assertPriceFeedsResultToTrade("Non Tradable Product returned Trade", null, Lists.newArrayList(price));
+        assertPriceFeedsResultToTrade("Non Tradable Product returned Trade", Lists.newArrayList(Pair.of(price, null)));
     }
 
-    private void assertPriceFeedsResultToTrade(String tag, Trade expectedTrade, List<Price> inputPrices) {
-        if (inputPrices == null || inputPrices.isEmpty()) {
+    @Test
+    public void testBuildTrades_atLeastFourTradesToTrade_1() {
+        List<Pair<Price, Trade>> priceFeed1 = Lists.newArrayList(Pair.of(Price.create("a", 3.1415), null));
+        assertPriceFeedsResultToTrade("PriceFeed1", priceFeed1);
+    }
+
+    @Test
+    public void testBuildTrades_atLeastFourTradesToTrade_2() {
+        List<Pair<Price, Trade>> priceFeed2 = Lists.newArrayList(
+                Pair.of(Price.create("a", 3.1415), null),
+                Pair.of(Price.create("a", 4.1415), null));
+        assertPriceFeedsResultToTrade("PriceFeed2", priceFeed2);
+    }
+
+    @Test
+    public void testBuildTrades_atLeastFourTradesToTrade_3() {
+        List<Pair<Price, Trade>> priceFeed3 = Lists.newArrayList(
+                Pair.of(Price.create("a", 3.1415), null),
+                Pair.of(Price.create("a", 4.1415), null),
+                Pair.of(Price.create("a", 5.1415), null));
+        assertPriceFeedsResultToTrade("PriceFeed3", priceFeed3);
+    }
+
+    @Test
+    public void testBuildTrades_atLeastFourTradesToTrade_4() {
+        List<Pair<Price, Trade>> priceFeed4 = Lists.newArrayList(
+                Pair.of(Price.create("a", 3.1415), null),
+                Pair.of(Price.create("a", 4.1415), null),
+                Pair.of(Price.create("a", 5.1415), null),
+                Pair.of(Price.create("a", 6.1415), Trade.create("a", Trade.Direction.BUY, 6.1415, 1000)));
+        assertPriceFeedsResultToTrade("PriceFeed4", priceFeed4);
+    }
+
+    @Test
+    public void testBuildTrades_nullTradeForNonTradableProduct() {
+        List<Pair<Price, Trade>> priceFeed = Lists.newArrayList(
+                Pair.of(Price.create("e", 3.1415), null),
+                Pair.of(Price.create("e", 4.1415), null),
+                Pair.of(Price.create("e", 5.1415), null),
+                Pair.of(Price.create("e", 6.1415), null));
+        assertPriceFeedsResultToTrade("Non Tradable PriceFeed", priceFeed);
+    }
+
+    @Test
+    public void testAveragePrice() {
+        List<Double> priceFeed = Lists.newArrayList(
+                3.1415,
+                4.1415,
+                5.1415,
+                6.1415);
+
+        double averagePrice = tradingAlgorithm.averagePrice(priceFeed);
+        assertEquals(Math.round(4.6415 * 10000), Math.round(averagePrice * 10000));
+
+    }
+
+    private void assertPriceFeedsResultToTrade(String tag, List<Pair<Price, Trade>> inputOutputExpectations) {
+        if (inputOutputExpectations == null || inputOutputExpectations.isEmpty()) {
             return;
         }
-        List<Trade> trades = inputPrices.stream().map(p -> { return tradingAlgorithm.buildTrades(p); }).collect(Collectors.toList());
-        Trade actualTrade = trades.get(trades.size() - 1);
-        assertEquals(tag, expectedTrade, actualTrade);
+
+        for (int i = 0; i < inputOutputExpectations.size(); i++) {
+            Pair<Price, Trade> inputOutputExpectation = inputOutputExpectations.get(i);
+            Trade actualTrade = tradingAlgorithm.buildTrades(inputOutputExpectation.getKey());
+            assertEquals(String.format("[%s #%s] Mismatch", tag, i), inputOutputExpectation.getValue(), actualTrade);
+        }
     }
 
 

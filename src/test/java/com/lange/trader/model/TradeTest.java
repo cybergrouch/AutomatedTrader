@@ -2,11 +2,6 @@ package com.lange.trader.model;
 
 import com.google.java.contract.PreconditionError;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -14,8 +9,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Created by lange on 17/3/16.
  */
-@PrepareForTest({Trade.class})
-@RunWith(PowerMockRunner.class)
 public class TradeTest {
 
     @Test

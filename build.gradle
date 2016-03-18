@@ -8,12 +8,10 @@ project.ext {
     v = [
             cofoja: '1.3-20160207',
             guava: '19.0',
+            commonsLang3: "3.1",
 
             junit: '4.11',
-            mockito: '1.9.5',
-            powermock: '1.6.1',
-            assertJ: '3.3.0',
-            commonsLang3: "3.1"
+            assertJ: '3.3.0'
     ]
 
     outputPath = sourceSets.main.output.classesDir
@@ -36,8 +34,6 @@ dependencies {
     compile "org.apache.commons:commons-lang3:${v.commonsLang3}"
 
     testCompile "junit:junit:${v.junit}"
-    testCompile "org.mockito:mockito-all:${v.mockito}"
-    testCompile "org.powermock:powermock-mockito-release-full:${v.powermock}"
     testCompile "org.assertj:assertj-core:${v.assertJ}"
     testCompile outputContractsDir
 

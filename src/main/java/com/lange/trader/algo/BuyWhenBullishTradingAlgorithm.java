@@ -1,10 +1,9 @@
 package com.lange.trader.algo;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.java.contract.Requires;
 import com.lange.trader.model.Price;
 import com.lange.trader.model.Trade;
+import com.lange.trader.struc.MultiMap;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,17 +15,18 @@ public class BuyWhenBullishTradingAlgorithm implements TradingAlgorithm {
 
     @Requires({
             "productNames != null",
-            "productNames.length > 0",
-            "Iterables.all(Arrays.asList(productNames), x -> { return x != null && x.trim() != \"\"; })"
+            "productNames.length > 0"
     })
     public static TradingAlgorithm create(String... productNames) {
         return new BuyWhenBullishTradingAlgorithm(productNames);
     }
 
     private final List<String> productNames;
+    private final MultiMap<String, Double> priceFeeds;
 
     public BuyWhenBullishTradingAlgorithm(String[] productNames) {
         this.productNames = Arrays.asList(productNames);
+        this.priceFeeds = MultiMap.create(4);
     }
 
     @Override
@@ -34,10 +34,31 @@ public class BuyWhenBullishTradingAlgorithm implements TradingAlgorithm {
             "price != null"
     })
     public Trade buildTrades(Price price) {
-        return null;
+        priceFeeds.put(price.productName, price.priceValue);
+        List<Double> prices = priceFeeds.get(price.productName);
+
+        if (!isProductTradable(price.productName)) {
+            return null;
+        }
+
+        if (prices.size() < 4) {
+            return null;
+        }
+
+
+        boolean isTrade = prices.get(0) < averagePrice(prices);
+        if (!isTrade) {
+            return null;
+        }
+
+        return Trade.create(price.productName, Trade.Direction.BUY, prices.get(3), 1000);
     }
 
     boolean isProductTradable(String productName) {
         return productNames.contains(productName);
+    }
+
+    double averagePrice(List<Double> prices) {
+        return prices.stream().reduce((acc, value) -> acc + value).orElse(0.0) / prices.size();
     }
 }
