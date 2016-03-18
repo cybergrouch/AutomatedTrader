@@ -23,7 +23,7 @@ import java.util.stream.Stream;
         "internalList == null || internalList.size() <= maxSize",
         "samplingSize <= maxSize / 2"
 })
-public class LimitedList<T> implements List<T> {
+public class LimitedList<T> extends AbstractList<T> {
 
     public final int maxSize;
     public final int samplingSize;
@@ -32,6 +32,12 @@ public class LimitedList<T> implements List<T> {
 
     public static <T> LimitedList<T> create(int samplingSize) {
         return new LimitedList<>(samplingSize);
+    }
+
+    public static <T> LimitedList<T> create(int samplingSize, List<T> list) {
+        LimitedList<T> limitedList = create(samplingSize);
+        limitedList.addAll(list);
+        return limitedList;
     }
 
     @Requires({
@@ -46,53 +52,107 @@ public class LimitedList<T> implements List<T> {
 
     private void limitPopulation() {
         while (internalList.size() > samplingSize) {
-            internalList.removeFirst();
+            synchronized (this) {
+                internalList.removeFirst();
+            }
         }
     }
 
     public List<T> sample() {
-        limitPopulation();
         return Lists.newArrayList(internalList);
     }
 
     @Override
     public Object[] toArray() {
-        limitPopulation();
         return internalList.toArray();
     }
 
     @Override
     public boolean add(T t) {
-        boolean success = internalList.add(t);
+        boolean success = false;
+        synchronized (this) {
+            success = internalList.add(t);
+        }
         limitPopulation();
         return success;
     }
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        boolean success = internalList.addAll(c);
+        boolean success = false;
+        synchronized (this) {
+            success = internalList.addAll(c);
+        }
         limitPopulation();
         return success;
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends T> c) {
-        boolean success = internalList.addAll(index, c);
+        boolean success = false;
+        synchronized (this) {
+            success = internalList.addAll(index, c);
+        }
         limitPopulation();
         return success;
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        boolean success = internalList.retainAll(c);
+        boolean success = false;
+        synchronized (this) {
+            success = internalList.retainAll(c);
+        }
         limitPopulation();
         return success;
     }
 
     @Override
-    public void replaceAll(UnaryOperator<T> operator) {
-        internalList.replaceAll(operator);
-        limitPopulation();
+    public boolean remove(Object o) {
+        boolean success = false;
+        synchronized (this) {
+            success = internalList.remove(o);
+        }
+        return success;
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        boolean success = false;
+        synchronized (this) {
+            success = internalList.removeAll(c);
+        }
+        return success;
+    }
+
+    @Override
+    public synchronized void sort(Comparator<? super T> c) {
+        internalList.sort(c);
+    }
+
+    @Override
+    public synchronized void clear() {
+        internalList.clear();
+    }
+
+    @Override
+    public synchronized T set(int index, T element) {
+        return internalList.set(index, element);
+    }
+
+    @Override
+    public synchronized void add(int index, T element) {
+        internalList.add(index, element);
+    }
+
+    @Override
+    public synchronized T remove(int index) {
+        return internalList.remove(index);
+    }
+
+    @Override
+    public synchronized boolean removeIf(Predicate<? super T> filter) {
+        return internalList.removeIf(filter);
     }
 
     public Iterator<T> descendingIterator() {
@@ -128,28 +188,8 @@ public class LimitedList<T> implements List<T> {
     }
 
     @Override
-    public boolean remove(Object o) {
-        return internalList.remove(o);
-    }
-
-    @Override
     public boolean containsAll(Collection<?> c) {
         return internalList.containsAll(c);
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        return internalList.removeAll(c);
-    }
-
-    @Override
-    public void sort(Comparator<? super T> c) {
-        internalList.sort(c);
-    }
-
-    @Override
-    public void clear() {
-        internalList.clear();
     }
 
     @Override
@@ -165,21 +205,6 @@ public class LimitedList<T> implements List<T> {
     @Override
     public T get(int index) {
         return internalList.get(index);
-    }
-
-    @Override
-    public T set(int index, T element) {
-        return internalList.set(index, element);
-    }
-
-    @Override
-    public void add(int index, T element) {
-        internalList.add(index, element);
-    }
-
-    @Override
-    public T remove(int index) {
-        return internalList.remove(index);
     }
 
     @Override
@@ -212,23 +237,4 @@ public class LimitedList<T> implements List<T> {
         return internalList.spliterator();
     }
 
-    @Override
-    public boolean removeIf(Predicate<? super T> filter) {
-        return internalList.removeIf(filter);
-    }
-
-    @Override
-    public Stream<T> stream() {
-        return internalList.stream();
-    }
-
-    @Override
-    public Stream<T> parallelStream() {
-        return internalList.parallelStream();
-    }
-
-    @Override
-    public void forEach(Consumer<? super T> action) {
-        internalList.forEach(action);
-    }
 }

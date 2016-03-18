@@ -22,7 +22,7 @@ public class LimitedListTest {
     }
 
     @Test
-    public void testOfferUpToLimit() {
+    public void testAddUpToLimit() {
         LimitedList<Integer> listOfIntegers = LimitedList.<Integer>create(2);
         assertThat(listOfIntegers).isNotNull();
         assertThat(listOfIntegers.maxSize).isEqualTo(4);
