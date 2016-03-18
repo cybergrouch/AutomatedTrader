@@ -1,5 +1,6 @@
 package com.lange.trader.struc;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -11,19 +12,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Created by lange on 18/3/16.
  */
 @PrepareForTest({LimitedList.class})
-@RunWith(PowerMockRunner.class)
 public class LimitedListTest {
 
     @Test
     public void testInstantiation() {
-        LimitedList<Integer> listOfIntegers = LimitedList.<Integer>create(2);
+        LimitedList<Integer> listOfIntegers = LimitedList.create(2);
         assertThat(listOfIntegers).isNotNull();
         assertThat(listOfIntegers.maxSize).isEqualTo(4);
     }
 
     @Test
     public void testAddUpToLimit() {
-        LimitedList<Integer> listOfIntegers = LimitedList.<Integer>create(2);
+        LimitedList<Integer> listOfIntegers = LimitedList.create(2);
         assertThat(listOfIntegers).isNotNull();
         assertThat(listOfIntegers.maxSize).isEqualTo(4);
         assertThat(listOfIntegers.samplingSize).isEqualTo(2);

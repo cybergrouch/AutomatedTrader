@@ -1,6 +1,7 @@
 package com.lange.trader.struc;
 
 import com.google.common.collect.Lists;
+import com.google.java.contract.Ensures;
 import com.google.java.contract.Invariant;
 import com.google.java.contract.Requires;
 
@@ -32,7 +33,7 @@ public class LimitedList<T> extends AbstractList<T> {
         return limitedList;
     }
 
-    @Requires({
+    @Ensures({
             "maxSize > 0",
             "2 * samplingSize <= maxSize"
     })

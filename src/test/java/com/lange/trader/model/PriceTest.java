@@ -23,7 +23,7 @@ public class PriceTest {
         Price price1 = Price.create("Item A", 3.1415);
         assertThat(price1).isNotNull();
 
-        Price price2 = Price.create("Item B", new BigDecimal(1.412));
+        Price price2 = Price.create("Item B", 1.412);
         assertThat(price2).isNotNull();
     }
 

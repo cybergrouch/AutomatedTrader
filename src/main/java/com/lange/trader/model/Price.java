@@ -10,20 +10,18 @@ import java.math.BigDecimal;
  */
 @Invariant({
         "productName != null",
-        "priceValue != null",
-        "priceValue.doubleValue() >= 0"
+        "priceValue >= 0"
 })
 public class Price {
 
     public final String productName;
-    public final BigDecimal priceValue;
+    public final double priceValue;
 
     @Requires({
             "productName != null",
-            "priceValue != null",
-            "priceValue.doubleValue() >= 0"
+            "priceValue >= 0"
     })
-    private Price(String productName, BigDecimal priceValue) {
+    private Price(String productName, double priceValue) {
         this.productName = productName;
         this.priceValue = priceValue;
     }
@@ -33,20 +31,12 @@ public class Price {
             "priceValue >= 0"
     })
     public static Price create(String productName, double priceValue) {
-        return create(productName, new BigDecimal(priceValue));
-    }
-
-    @Requires({
-            "productName != null",
-            "priceValue != null",
-            "priceValue.doubleValue() >= 0"
-    })
-    public static Price create(String productName, BigDecimal priceValue) {
         return new Price(productName, priceValue);
     }
 
+
     @Override
     public String toString() {
-        return "Price{ productName: %s, priceValue: %s }".format(productName, priceValue.doubleValue());
+        return String.format("Price{ productName: %s, priceValue: %s }", productName, priceValue);
     }
 }

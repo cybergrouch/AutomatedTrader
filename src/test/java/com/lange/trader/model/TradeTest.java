@@ -23,7 +23,7 @@ public class TradeTest {
         Trade trade1 = Trade.create("Item A", Trade.Direction.BUY, 3.1415, 100);
         assertThat(trade1).isNotNull();
 
-        Trade trade2 = Trade.create("Item B", Trade.Direction.SELL, new BigDecimal(1.412), 153);
+        Trade trade2 = Trade.create("Item B", Trade.Direction.SELL, 1.412, 153);
         assertThat(trade2).isNotNull();
     }
 

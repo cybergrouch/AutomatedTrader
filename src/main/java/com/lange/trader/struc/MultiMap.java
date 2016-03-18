@@ -1,9 +1,11 @@
 package com.lange.trader.struc;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.java.contract.Invariant;
 import com.google.java.contract.Requires;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
@@ -11,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
  * Created by lange on 18/3/16.
  */
 @Invariant({
-        "samplingSize > 0",
+        "listSamplingSize > 0",
         "cache != null"
 })
 public class MultiMap<K extends Comparable<K>, V> {
@@ -27,7 +29,7 @@ public class MultiMap<K extends Comparable<K>, V> {
     }
 
     @Requires({
-            "samplingSize > 0"
+            "listSamplingSize > 0"
     })
     private MultiMap(int listSamplingSize) {
         this.listSamplingSize = listSamplingSize;
@@ -52,7 +54,7 @@ public class MultiMap<K extends Comparable<K>, V> {
             "v != null"
     })
     public void put(K k, V v) {
-        cache.putIfAbsent(k, LimitedList.create(listSamplingSize));
+        cache.putIfAbsent(k, LimitedList.create(listSamplingSize, Lists.<V>newArrayList()));
         cache.get(k).add(v);
     }
 

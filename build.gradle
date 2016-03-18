@@ -12,8 +12,8 @@ project.ext {
             junit: '4.11',
             mockito: '1.9.5',
             powermock: '1.6.1',
-            assertJ: '3.3.0'
-
+            assertJ: '3.3.0',
+            commonsLang3: "3.1"
     ]
 
     outputPath = sourceSets.main.output.classesDir
@@ -33,6 +33,7 @@ repositories {
 dependencies {
     compile cofoja
     compile "com.google.guava:guava:${v.guava}"
+    compile "org.apache.commons:commons-lang3:${v.commonsLang3}"
 
     testCompile "junit:junit:${v.junit}"
     testCompile "org.mockito:mockito-all:${v.mockito}"
