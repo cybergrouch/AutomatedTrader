@@ -8,7 +8,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.math.BigDecimal;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Created by lange on 17/3/16.
