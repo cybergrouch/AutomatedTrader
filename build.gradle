@@ -41,10 +41,8 @@ repositories {
 dependencies {
     compile cofoja
     compile "com.google.guava:guava:${v.guava}"
-    compile "org.apache.commons:commons-lang3:${v.commonsLang3}"
 
     runtime "com.google.guava:guava:${v.guava}"
-    runtime "org.apache.commons:commons-lang3:${v.commonsLang3}"
 
     testCompile "junit:junit:${v.junit}"
     testCompile "org.assertj:assertj-core:${v.assertJ}"

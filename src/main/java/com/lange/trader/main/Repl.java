@@ -7,7 +7,7 @@ import com.lange.trader.algo.BuyWhenBullishTradingAlgorithm;
 import com.lange.trader.algo.TradingAlgorithm;
 import com.lange.trader.model.Price;
 import com.lange.trader.model.Trade;
-import org.apache.commons.lang3.tuple.Pair;
+import com.lange.trader.struc.Pair;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -129,10 +129,10 @@ public class Repl {
             System.out.print(">>>\t");
             String entry = scanner.nextLine();
             Pair<Boolean, String> result = execute(entry);
-            if (result.getKey()) {
-                showError(result.getRight());
+            if (result.key) {
+                showError(result.value);
             } else {
-                report(result.getRight());
+                report(result.value);
             }
         }
 
@@ -151,12 +151,12 @@ public class Repl {
             }
 
             Pair<String, Optional<List<String>>> commandPair = parse.get();
-            if (!DSL.containsKey(commandPair.getKey())) {
-                return Pair.of(true, "Invalid command: " + commandPair.getKey());
+            if (!DSL.containsKey(commandPair.key)) {
+                return Pair.of(true, "Invalid command: " + commandPair.key);
             }
 
-            Function<Optional<List<String>>, Pair<Boolean, String>> commandFunction = DSL.get(commandPair.getKey());
-            return commandFunction.apply(commandPair.getRight());
+            Function<Optional<List<String>>, Pair<Boolean, String>> commandFunction = DSL.get(commandPair.key);
+            return commandFunction.apply(commandPair.value);
         }
     }
 

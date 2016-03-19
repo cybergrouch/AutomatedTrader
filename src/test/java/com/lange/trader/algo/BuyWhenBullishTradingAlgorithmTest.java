@@ -3,7 +3,7 @@ package com.lange.trader.algo;
 import com.google.common.collect.Lists;
 import com.lange.trader.model.Price;
 import com.lange.trader.model.Trade;
-import org.apache.commons.lang3.tuple.Pair;
+import com.lange.trader.struc.Pair;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,13 +34,13 @@ public class BuyWhenBullishTradingAlgorithmTest {
     public void testIsProductTradable() {
         List<Pair<String, Boolean>> inputOutputExectations = Lists.newArrayList(Pair.of("a", true), Pair.of("c", false), Pair.of("d", false),  Pair.of("b", true));
         inputOutputExectations.forEach(p -> {
-            boolean output = tradingAlgorithm.isProductTradable(p.getKey());
+            boolean output = tradingAlgorithm.isProductTradable(p.key);
             assertEquals(String.format("Expected output for %s is %s but returned %s",
-                        p.getKey(),
-                        p.getValue(),
-                        tradingAlgorithm.isProductTradable(p.getKey()),
+                        p.key,
+                        p.value,
+                        tradingAlgorithm.isProductTradable(p.key),
                         output),
-                    p.getValue(), output);
+                    p.value, output);
         });
     }
 
@@ -113,8 +113,8 @@ public class BuyWhenBullishTradingAlgorithmTest {
 
         for (int i = 0; i < inputOutputExpectations.size(); i++) {
             Pair<Price, Trade> inputOutputExpectation = inputOutputExpectations.get(i);
-            Trade actualTrade = tradingAlgorithm.buildTrades(inputOutputExpectation.getKey());
-            assertEquals(String.format("[%s #%s] Mismatch", tag, i), inputOutputExpectation.getValue(), actualTrade);
+            Trade actualTrade = tradingAlgorithm.buildTrades(inputOutputExpectation.key);
+            assertEquals(String.format("[%s #%s] Mismatch", tag, i), inputOutputExpectation.value, actualTrade);
         }
     }
 
