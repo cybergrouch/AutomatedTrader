@@ -44,12 +44,12 @@ public class BuyWhenBullishTradingAlgorithm implements TradingAlgorithm {
             "price != null"
     })
     public Trade buildTrades(Price price) {
-        priceFeeds.put(price.productName, price.priceValue);
-        List<Double> prices = priceFeeds.get(price.productName);
-
         if (!isProductTradable(price.productName)) {
             return null;
         }
+
+        priceFeeds.put(price.productName, price.priceValue);
+        List<Double> prices = priceFeeds.get(price.productName);
 
         if (prices.size() < 4) {
             return null;

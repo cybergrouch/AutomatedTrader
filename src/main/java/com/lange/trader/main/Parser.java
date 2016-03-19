@@ -16,13 +16,19 @@ public class Parser {
         parse("reset()");
         parse("(a, b, c)");
         parse("exit()\n");
-        parse("abc");
+        parse("x(abcd def gih)");
+        parse("batch(x(1,2,3), y(2,4, 5))");
     }
 
     public static void parse(String input) {
         String regex="([a-zA-Z0-9]+)*\\(([ ,.a-zA-Z0-9]+)*\\)\\s*";
+        //String regex="([a-zA-Z0-9]+)*\\(([ ,.a-zA-Z0-9\\(\\)\\s]+)*\\)\\s*";
+        //String functionRegEx="([a-zA-Z0-9]+)*\\(([ .,'a-zA-Z0-9\\(\\\\_\\-)]*)\\)";
+        String argumentRegEx="";
+
         Pattern funcPattern = Pattern.compile(regex);
         Matcher m = funcPattern.matcher(input);
+        System.out.println(String.format("Processing [%s]", input));
         System.out.println("Match found: " + m.matches());
         System.out.println("Total matches are: " + m.groupCount());
 

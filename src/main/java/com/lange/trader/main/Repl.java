@@ -9,9 +9,16 @@ import com.lange.trader.model.Price;
 import com.lange.trader.model.Trade;
 import com.lange.trader.struc.Pair;
 
+import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Created by lange on 19/3/16.
@@ -62,9 +69,121 @@ public class Repl {
                 buffer.append("\n\treset()\treset the environment");
                 buffer.append("\n\texit()\tREPL exits loop");
                 buffer.append("\n\tsetup(String... productNames)\tSets up the TradingAlgorithm. Only productNames specified are tradable.");
+                buffer.append("\n\tbatchSerial(String filename)\tRun a script file. The first line will need to be a setup() command.");
+                buffer.append("\n\tbatchParallel(String filename)\tRun a script file. The first line will be executed first and should be a setup() command. The rest will be executed in parallel and thus no guarantee of order.");
                 buffer.append("\n\tprice(String productName, double quotedPrice)\tOffer a price feed to the TradingAlgorithm.");
 
                 return Pair.of(false, buffer.toString());
+            });
+
+            put("batchParallel", argumentsOpt -> {
+                List<String> arguments = argumentsOpt.get();
+
+                if (!argumentsOpt.isPresent()) {
+                    return Pair.of(true, "Missing filename argument. Usage: batchParallel(String filename)");
+                }
+
+                if (arguments.size() != 1) {
+                    return Pair.of(true, "Invalid filename argument. Usage: batchParallel(String filename)");
+                }
+
+                String filename = arguments.get(0);
+
+                try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+                    String firstLine = reader.readLine();
+                    Holder.INSTANCE.executeCommand(firstLine);
+
+                    final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+                    final CompletionService<String> service = new ExecutorCompletionService<String>(pool);
+
+                    long start = System.nanoTime();
+                    StreamSupport.stream(
+                            ZippingSpliterator.zipping(
+                                    Stream.iterate(0, i -> i + 1).spliterator(),
+                                    reader.lines().spliterator(),
+                                    (i, line) -> Pair.of(i, line)), true)
+                            .parallel()
+                            .map(indexedLine -> {
+                                return new Callable<String>() {
+                                    @Override
+                                    public String call() throws Exception {
+                                        return String.format("Processing: [%s] %s :: %s",
+                                                indexedLine.key, indexedLine.value, Holder.INSTANCE.execute(indexedLine.value).value);
+                                    }
+                                };
+                            })
+                            .forEach(callable -> {
+                                service.submit(callable);
+                            });
+                    pool.shutdown();
+
+                    try {
+                        while (!pool.isTerminated()) {
+                            final Future<String> future = service.take();
+                            Holder.INSTANCE.report(future.get());
+                        }
+                    } catch (ExecutionException | InterruptedException ex) {
+                        StringBuffer buffer = new StringBuffer("ERROR: Execution Thread Exception encountered\n");
+                        StringWriter sWriter = new StringWriter();
+                        PrintWriter writer = new PrintWriter(sWriter);
+                        ex.printStackTrace(writer);
+                        writer.flush();
+                        buffer.append("STACK TRACE: ").append(sWriter.toString());
+                        return Pair.of(true, buffer.toString());
+                    }
+
+                    long duration = System.nanoTime() - start;
+                    return Pair.of(false, String.format("Batch Parallel completed in %s ns", duration));
+                } catch (IOException e) {
+                    StringBuffer buffer = new StringBuffer("ERROR: I/O Exception executing batch parallel\n");
+                    StringWriter sWriter = new StringWriter();
+                    PrintWriter writer = new PrintWriter(sWriter);
+                    e.printStackTrace(writer);
+                    writer.flush();
+                    buffer.append("STACK TRACE: ").append(sWriter.toString());
+                    return Pair.of(true, buffer.toString());
+                }
+
+            });
+
+            put("batchSerial", argumentsOpt -> {
+                List<String> arguments = argumentsOpt.get();
+
+                if (!argumentsOpt.isPresent()) {
+                    return Pair.of(true, "Missing filename argument. Usage: batchSerial(String filename)");
+                }
+
+                if (arguments.size() != 1) {
+                    return Pair.of(true, "Invalid filename argument. Usage: batchSerial(String filename)");
+                }
+
+                String filename = arguments.get(0);
+
+                try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+                    String firstLine = reader.readLine();
+                    Holder.INSTANCE.executeCommand(firstLine);
+
+                    long start = System.nanoTime();
+                    StreamSupport.stream(
+                            ZippingSpliterator.zipping(
+                                    Stream.iterate(0, i -> i + 1).spliterator(),
+                                    reader.lines().spliterator(),
+                                    (i, line) -> Pair.of(i, line)), false)
+                            .forEach(indexedLine -> {
+                                Holder.INSTANCE.report(String.format("Processing: [%s] %s :: %s",
+                                        indexedLine.key, indexedLine.value, Holder.INSTANCE.execute(indexedLine.value).value));
+                            });
+                    long duration = System.nanoTime() - start;
+                    return Pair.of(false, String.format("Batch Serial completed in %s ns", duration));
+                } catch (IOException e) {
+                    StringBuffer buffer = new StringBuffer("ERROR: I/O Exception executing batch serial\n");
+                    StringWriter sWriter = new StringWriter();
+                    PrintWriter writer = new PrintWriter(sWriter);
+                    e.printStackTrace(writer);
+                    writer.flush();
+                    buffer.append("STACK TRACE: ").append(sWriter.toString());
+                    return Pair.of(true, buffer.toString());
+                }
             });
 
             put("setup", argumentsOpt -> {
@@ -128,7 +247,11 @@ public class Repl {
         void prompt() {
             System.out.print(">>>\t");
             String entry = scanner.nextLine();
-            Pair<Boolean, String> result = execute(entry);
+            executeCommand(entry);
+        }
+
+        void executeCommand(String command) {
+            Pair<Boolean, String> result = execute(command);
             if (result.key) {
                 showError(result.value);
             } else {
@@ -162,7 +285,7 @@ public class Repl {
 
     static class Parser {
         static Optional<Pair<String, Optional<List<String>>>> parse(String input) {
-            String regex="([a-zA-Z0-9]+)*\\(([ ,.a-zA-Z0-9]+)*\\)\\s*";
+            String regex="([a-zA-Z0-9]+)*\\(([ _,.a-zA-Z0-9]+)*\\)\\s*";
             Pattern funcPattern = Pattern.compile(regex);
             Matcher m = funcPattern.matcher(input);
 
@@ -177,9 +300,57 @@ public class Repl {
 
             Optional<List<String>> arguments = Optional.absent();
             if (m.group(2) != null) {
-                arguments = Optional.fromNullable(Arrays.asList(m.group(2).split(",")));
+                arguments = Optional.fromNullable(
+                        Arrays.stream(m.group(2).split(","))
+                                .map(argument -> argument.trim())
+                                .collect(Collectors.toList()));
             }
             return Optional.of(Pair.of(command.get(), arguments));
+        }
+    }
+
+    static class ZippingSpliterator<L, R, O> implements Spliterator<O> {
+
+        static <L, R, O> Spliterator<O> zipping(Spliterator<L> lefts, Spliterator<R> rights, BiFunction<L, R, O> combiner) {
+            return new ZippingSpliterator<>(lefts, rights, combiner);
+        }
+
+        private final Spliterator<L> lefts;
+        private final Spliterator<R> rights;
+        private final BiFunction<L, R, O> combiner;
+        private boolean rightHadNext = false;
+
+        private ZippingSpliterator(Spliterator<L> lefts, Spliterator<R> rights, BiFunction<L, R, O> combiner) {
+            this.lefts = lefts;
+            this.rights = rights;
+            this.combiner = combiner;
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super O> action) {
+            rightHadNext = false;
+            boolean leftHadNext = lefts.tryAdvance(l ->
+                    rights.tryAdvance(r -> {
+                        rightHadNext = true;
+                        action.accept(combiner.apply(l, r));
+                    }));
+            return leftHadNext && rightHadNext;
+        }
+
+        @Override
+        public Spliterator<O> trySplit() {
+            return null;
+        }
+
+        @Override
+        public long estimateSize() {
+            return Math.min(lefts.estimateSize(), rights.estimateSize());
+        }
+
+        @Override
+        public int characteristics() {
+            return lefts.characteristics() & rights.characteristics()
+                    & ~(Spliterator.DISTINCT | Spliterator.SORTED);
         }
     }
 }

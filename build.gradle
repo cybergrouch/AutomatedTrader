@@ -19,6 +19,7 @@ project.ext {
             cofoja: '1.3-20160207',
             guava: '19.0',
             commonsLang3: "3.1",
+            protonpack: "1.8",
 
             junit: '4.11',
             assertJ: '3.3.0'
@@ -41,8 +42,10 @@ repositories {
 dependencies {
     compile cofoja
     compile "com.google.guava:guava:${v.guava}"
+    compile "com.codepoetics:protonpack:${v.protonpack}"
 
     runtime "com.google.guava:guava:${v.guava}"
+    runtime "com.codepoetics:protonpack:${v.protonpack}"
 
     testCompile "junit:junit:${v.junit}"
     testCompile "org.assertj:assertj-core:${v.assertJ}"
