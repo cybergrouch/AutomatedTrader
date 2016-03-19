@@ -120,10 +120,22 @@ There are two ways to run the script:
 
 The REPL loads the text file and runs through the file one by one and executes it serially. Order is guaranteed.
 
+Here's a sample serial invocation of the ```price_feed.txt``` sample file.
+
+```
+>>> batchSerial(price_feed.txt)
+```
+
 #### Parallel Batch Processing
 
 The REPL loads the text file and runs the first line. The rest of the file, are run parallely. Thus the order of the
 trades are not guaranteed. But this would help test and detect thread-safety issues on the code.
+
+Here's a sample parallel invocation of the ```price_feed.txt``` sample file.
+
+```
+>>> batchParallel(price_feed.txt)
+```
 
 ## Library Attributions
 
