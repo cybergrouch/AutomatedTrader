@@ -1,7 +1,9 @@
 package com.lange.trader.main;
 
+import com.codepoetics.protonpack.StreamUtils;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.lange.trader.algo.BuyWhenBullishTradingAlgorithm;
 import com.lange.trader.algo.TradingAlgorithm;
@@ -93,47 +95,22 @@ public class Repl {
                     String firstLine = reader.readLine();
                     Holder.INSTANCE.executeCommand(firstLine);
 
-                    final ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-                    final CompletionService<String> service = new ExecutorCompletionService<String>(pool);
-
                     long start = System.nanoTime();
-                    StreamSupport.stream(
-                            ZippingSpliterator.zipping(
-                                    Stream.iterate(0, i -> i + 1).spliterator(),
-                                    reader.lines().spliterator(),
-                                    (i, line) -> Pair.of(i, line)), true)
-                            .parallel()
-                            .map(indexedLine -> {
-                                return new Callable<String>() {
-                                    @Override
-                                    public String call() throws Exception {
-                                        return String.format("Processing: [%s] %s :: %s",
-                                                indexedLine.key, indexedLine.value, Holder.INSTANCE.execute(indexedLine.value).value);
-                                    }
-                                };
-                            })
-                            .forEach(callable -> {
-                                service.submit(callable);
-                            });
-                    pool.shutdown();
-
-                    try {
-                        while (!pool.isTerminated()) {
-                            final Future<String> future = service.take();
-                            Holder.INSTANCE.report(future.get());
-                        }
-                    } catch (ExecutionException | InterruptedException ex) {
-                        StringBuffer buffer = new StringBuffer("ERROR: Execution Thread Exception encountered\n");
-                        StringWriter sWriter = new StringWriter();
-                        PrintWriter writer = new PrintWriter(sWriter);
-                        ex.printStackTrace(writer);
-                        writer.flush();
-                        buffer.append("STACK TRACE: ").append(sWriter.toString());
-                        return Pair.of(true, buffer.toString());
-                    }
-
+                    List<Supplier<String>> callables =
+                            StreamUtils.zip(
+                                    Stream.iterate(0, i -> i + 1),
+                                    reader.lines(),
+                                    (i, line) -> Pair.of(i, line))
+                                    .map(indexedLine -> (Supplier<String>) (() ->
+                                            String.format("Processing: [%s] %s :: %s",
+                                                    indexedLine.key, indexedLine.value, Holder.INSTANCE.execute(indexedLine.value).value))
+                                    ).collect(Collectors.toList());
+                    int count = callables.parallelStream().map(supplier -> {
+                        Holder.INSTANCE.report(supplier.get());
+                        return 1;
+                    }).reduce(Math::addExact).orElse(0);
                     long duration = System.nanoTime() - start;
-                    return Pair.of(false, String.format("Batch Parallel completed in %s ns", duration));
+                    return Pair.of(false, String.format("Batch Parallel completed processing %s feeds in %s ns", count, duration));
                 } catch (IOException e) {
                     StringBuffer buffer = new StringBuffer("ERROR: I/O Exception executing batch parallel\n");
                     StringWriter sWriter = new StringWriter();
@@ -164,11 +141,9 @@ public class Repl {
                     Holder.INSTANCE.executeCommand(firstLine);
 
                     long start = System.nanoTime();
-                    StreamSupport.stream(
-                            ZippingSpliterator.zipping(
-                                    Stream.iterate(0, i -> i + 1).spliterator(),
-                                    reader.lines().spliterator(),
-                                    (i, line) -> Pair.of(i, line)), false)
+                    StreamUtils.zip(Stream.iterate(0, i -> i + 1),
+                            reader.lines(),
+                            (i, line) -> Pair.of(i, line))
                             .forEach(indexedLine -> {
                                 Holder.INSTANCE.report(String.format("Processing: [%s] %s :: %s",
                                         indexedLine.key, indexedLine.value, Holder.INSTANCE.execute(indexedLine.value).value));
