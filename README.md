@@ -18,11 +18,11 @@ $ ./gradlew test
 ### Running via IntelliJ
 
 1. Add a run configuration for all JUnit tests on the project
-2. Ensure that you pass the following VM options during test run:
-
+2. To enable Cofoja on unit test runs, configure the IntelliJ unit test run configuration for the JUnit tests to pass the following VM options:
 ```
 -javaagent:lib/cofoja.asm-1.3-20160207.jar
 ```
+3. To be able to instrument the code with Cofoja, configure IntelliJ to run the Gradle ```build``` task prior to running the tests.
 
 ## Installing and Running the REPL
 

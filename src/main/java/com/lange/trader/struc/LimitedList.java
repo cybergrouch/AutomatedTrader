@@ -1,6 +1,5 @@
 package com.lange.trader.struc;
 
-import com.google.common.collect.Lists;
 import com.google.java.contract.Ensures;
 import com.google.java.contract.Invariant;
 
@@ -51,7 +50,7 @@ public class LimitedList<T> extends AbstractList<T> {
     }
 
     public List<T> sample() {
-        return Lists.newArrayList(internalList);
+        return Collections.unmodifiableList(internalList);
     }
 
     @Override
