@@ -7,4 +7,5 @@
 
 ### Gradle ###
 .gradle
+.gradletasknamecache
 build/
