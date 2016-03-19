@@ -3,6 +3,16 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'application'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.rholder:gradle-one-jar:1.0.4'
+    }
+}
 
 project.ext {
     v = [
@@ -33,6 +43,9 @@ dependencies {
     compile "com.google.guava:guava:${v.guava}"
     compile "org.apache.commons:commons-lang3:${v.commonsLang3}"
 
+    runtime "com.google.guava:guava:${v.guava}"
+    runtime "org.apache.commons:commons-lang3:${v.commonsLang3}"
+
     testCompile "junit:junit:${v.junit}"
     testCompile "org.assertj:assertj-core:${v.assertJ}"
     testCompile outputContractsDir
@@ -54,4 +67,13 @@ task compileContracts(type: JavaCompile) {
 
 test {
     jvmArgs "-javaagent:lib/cofoja.asm-${v.cofoja}.jar"
+}
+
+mainClassName = "com.lange.trader.main.Repl"
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName,
+                'Class-Path': configurations.runtime.files.collect {"$it.name"}.join(' ')
+    }
 }

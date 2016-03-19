@@ -7,6 +7,7 @@ import com.lange.trader.struc.MultiMap;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by lange on 18/3/16.
@@ -18,6 +19,15 @@ public class BuyWhenBullishTradingAlgorithm implements TradingAlgorithm {
             "productNames.length > 0"
     })
     public static TradingAlgorithm create(String... productNames) {
+        return new BuyWhenBullishTradingAlgorithm(productNames);
+    }
+
+    @Requires({
+            "productNamesList != null",
+            "productNamesList.size() > 0"
+    })
+    public static TradingAlgorithm create(List<String> productNamesList) {
+        String[] productNames = productNamesList.toArray(new String[productNamesList.size()]);
         return new BuyWhenBullishTradingAlgorithm(productNames);
     }
 
@@ -52,6 +62,14 @@ public class BuyWhenBullishTradingAlgorithm implements TradingAlgorithm {
         }
 
         return Trade.create(price.productName, Trade.Direction.BUY, prices.get(3), 1000);
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer("BuyWhenBullishTradingAlgorithm{" +
+                "productNames=[");
+        buffer.append(productNames.stream().collect(Collectors.joining(","))).append("]}");
+        return buffer.toString();
     }
 
     boolean isProductTradable(String productName) {
