@@ -1,7 +1,5 @@
 package com.lange.trader.struc;
 
-import com.google.java.contract.Requires;
-
 /**
  * Created by lange on 19/3/16.
  */
