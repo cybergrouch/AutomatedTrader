@@ -112,7 +112,9 @@ $
 
 ### Load Testing via REPL
 
-The REPL has 2 load testing mechanism to ensure that the implementation can scale up, correct, and thread-safe. Users can create a script of runnable commands via the REPL and save it in a text file. The only rule is that the first line should always be a setup() in order to guarantee that the TradingAlgorithm instance is set. A sample price feed simulation script is provided (see ```price_feed.txt```).
+The REPL has 2 load testing mechanism to ensure that the implementation can scale up, correct, and thread-safe. Users can create a script of runnable commands via the REPL and save it in a text file.
+
+But one particular but singularly important rule is that the **first line should always be a ```setup()``` command** in order to guarantee that the TradingAlgorithm instance is set. A sample price feed simulation script is provided (see ```price_feed.txt```).
 
 There are two ways to run the script:
 
@@ -128,7 +130,7 @@ Here's a sample serial invocation of the ```price_feed.txt``` sample file.
 
 #### Parallel Batch Processing
 
-The REPL loads the text file and runs the first line. The rest of the file, are run parallely. Thus the order of the
+The REPL loads the text file and runs the first line. The rest of the file, are run in parallel. Thus the order of the
 trades are not guaranteed. But this would help test and detect thread-safety issues on the code.
 
 Here's a sample parallel invocation of the ```price_feed.txt``` sample file.
@@ -137,7 +139,7 @@ Here's a sample parallel invocation of the ```price_feed.txt``` sample file.
 >>> batchParallel(price_feed.txt)
 ```
 
-## Library Attributions
+## Attributions
 
 This code is dependent on some open source libraries during runtime.
 
